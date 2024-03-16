@@ -11,7 +11,7 @@ import numpy as np
 from holoviews import opts
 import pathlib
 import holoviews as hv
-from scipy.linalg import eigvals
+from scipy.linalg import eigvals, eig
 
 pn.extension(design='material')
 pn.extension('katex', 'mathjax')
@@ -137,7 +137,6 @@ test_app = pn.Column(
 
 
 test_app.servable()
-server = test_app.server
 
 # In[ ]:
 
