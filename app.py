@@ -20,8 +20,8 @@ pn.extension('katex', 'mathjax')
 # In[107]:
 
 
-range_min = -5.0
-range_max = 5.0
+range_min = -10.0
+range_max = 10.0
 step_size = 0.5
 xs, ys = np.arange(range_min, range_max, step_size), np.arange(range_min, range_max, step_size)
 X, Y = np.meshgrid(xs, ys)
@@ -68,7 +68,7 @@ def create_phase_plot(a, b, c, d):
         sl_curve1 = hv.Curve(sl_1).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue")
         sl_curve2 = hv.Curve(sl_2).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue")
         out = vectorfield*sl_curve1*sl_curve2
-        out.opts(shared_axes = False)
+        out.opts(shared_axes = False, height=800, width=800)
         #vectorfield.relabel(label)
         return out
 
@@ -104,6 +104,8 @@ def determinant(a, b, c, d):
 def td_point(a, b, c, d):   
     first = hv.Curve(transformed).opts(shared_axes=False)
     second =  hv.Scatter([(trace(a, b, c, d), determinant(a, b, c, d))]).opts(shared_axes=False)
+    out = first*second
+    out.opts(shared_axes=False, height=800, width=800)
     return first*second
 
 
