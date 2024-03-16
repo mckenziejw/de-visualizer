@@ -1,1 +1,1 @@
-web: panel server --address="0.0.0.0" --port=$PORT de_portrait.ipynb --allow-websocket-origin=de-visualizer.herokuapp.com
+web: panel app:server --address="0.0.0.0" --port=$PORT app.py --allow-websocket-origin=de-visualizer.herokuapp.com
