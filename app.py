@@ -43,10 +43,9 @@ def create_phase_plot(a, b, c, d):
     U,V = phase_portrait(a, b, c, d)
     mag = np.sqrt(U**2 + V**2)
     angle = (np.pi/2.) - np.arctan2(U/mag, V/mag)
-    opts.VectorField(height=800, width=800), opts.Curve(height=800, width=800), 
     opts.defaults(opts.Scatter(color="red",size=10))
 
-    vectorfield = hv.VectorField((xs, ys, angle, mag)).opts(shared_axes=False)
+    vectorfield = hv.VectorField((xs, ys, angle, mag)).opts(shared_axes=False, height=800, width=800)
     # find any eigenvectors
     matrix = np.array([[a, b], [c,d]])
     _, eigs = eig(matrix)
@@ -65,8 +64,8 @@ def create_phase_plot(a, b, c, d):
         sl_1 = ds.transform(y=expr1)
         sl_2 = ds.transform(y=expr2)
 
-        sl_curve1 = hv.Curve(sl_1).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue")
-        sl_curve2 = hv.Curve(sl_2).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue")
+        sl_curve1 = hv.Curve(sl_1).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue", height=800, width=800)
+        sl_curve2 = hv.Curve(sl_2).opts(xlim=(range_min, range_max), ylim=(range_min, range_max), shared_axes=False, color="blue", height=800, width=800)
         out = vectorfield*sl_curve1*sl_curve2
         out.opts(shared_axes = False, height=800, width=800)
         #vectorfield.relabel(label)
@@ -102,8 +101,8 @@ def determinant(a, b, c, d):
     return a*d-b*c
 
 def td_point(a, b, c, d):   
-    first = hv.Curve(transformed).opts(shared_axes=False)
-    second =  hv.Scatter([(trace(a, b, c, d), determinant(a, b, c, d))]).opts(shared_axes=False)
+    first = hv.Curve(transformed).opts(shared_axes=False, height=800, width=800)
+    second =  hv.Scatter([(trace(a, b, c, d), determinant(a, b, c, d))]).opts(shared_axes=False, height=800, width=800)
     out = first*second
     out.opts(shared_axes=False, height=800, width=800)
     return first*second
