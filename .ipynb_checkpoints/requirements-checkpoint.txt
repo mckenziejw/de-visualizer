@@ -4,3 +4,4 @@ pathlib
 scipy
 numpy
 pandas
+hvplot
