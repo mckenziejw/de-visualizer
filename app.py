@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[39]:
+# In[1]:
 
 
 import panel as pn
@@ -19,7 +19,7 @@ pn.extension(design='material')
 pn.extension('katex', 'mathjax')
 
 
-# In[40]:
+# In[2]:
 
 
 range_min = -10.0
@@ -38,7 +38,7 @@ def phase_portrait(a, b, c, d):
     return U, V
 
 
-# In[41]:
+# In[3]:
 
 
 # crosshair = CrosshairTool(dimensions="both")
@@ -47,7 +47,7 @@ def phase_portrait(a, b, c, d):
     
 
 
-# In[42]:
+# In[4]:
 
 
 def create_phase_plot(a, b, c, d):#, x, y):
@@ -86,7 +86,7 @@ def create_phase_plot(a, b, c, d):#, x, y):
         return out
 
 
-# In[43]:
+# In[5]:
 
 
 # def d_system(t, state, a, b, c, d):
@@ -108,25 +108,25 @@ def create_phase_plot(a, b, c, d):#, x, y):
 #     return pn.Row(out_x+out_y+out_both, align="center")
 
 
-# In[44]:
+# In[6]:
 
 
-a_widget = pn.widgets.FloatSlider(name="a", value = 1, start = range_min, end=range_max)
-b_widget = pn.widgets.FloatSlider(name="b", value = 1, start = range_min, end=range_max)
-c_widget = pn.widgets.FloatSlider(name="c", value = 1, start = range_min, end=range_max)
-d_widget = pn.widgets.FloatSlider(name="d", value = 1, start = range_min, end=range_max)
+a_widget = pn.widgets.EditableFloatSlider(name="a", value = 1, start = range_min, end=range_max, step=0.1, format='1[.]0')
+b_widget = pn.widgets.EditableFloatSlider(name="b", value = 1, start = range_min, end=range_max, step=0.1, format='1[.]0')
+c_widget = pn.widgets.EditableFloatSlider(name="c", value = 1, start = range_min, end=range_max, step=0.1, format='1[.]0')
+d_widget = pn.widgets.EditableFloatSlider(name="d", value = 1, start = range_min, end=range_max, step=0.1, format='1[.]0')
 # x_widget = pn.widgets.FloatSlider(name="x0", value = 1, start = range_min, end=range_max) 
 # y_widget = pn.widgets.FloatSlider(name="y0", value = 1, start = range_min, end=range_max) 
 # t_widget = pn.widgets.FloatSlider(name="time range", value = 6, start = 0, end=20)
 
 
-# In[45]:
+# In[7]:
 
 
 bound_plot = pn.bind(create_phase_plot, a=a_widget, b=b_widget, c=c_widget, d=d_widget)#, x=x_widget, y=y_widget)
 
 
-# In[47]:
+# In[8]:
 
 
 ds = hv.Dataset(np.linspace(-10, 10), 't')
@@ -142,8 +142,10 @@ def determinant(a, b, c, d):
 def td_point(a, b, c, d):   
     first = hv.Curve(transformed).opts(shared_axes=False)
     second =  hv.Scatter([(trace(a, b, c, d), determinant(a, b, c, d))]).opts(shared_axes=False)
-    out = first*second
-    out.opts(shared_axes=False, height=800, width=800, ylabel="D", xlabel="T", title="Trace Determinant Plane")
+    #third = hv.Curve([(0,i) for i in np.linspace(0,transformed['y'].max())]).opts(shared_axes=False)
+    #fourth = hv.Curve([(i,0) for i in np.linspace(transformed['t'].min(), transformed['t'].max())]).opts(shared_axes=False)
+    out = first*second#*third*fourth
+    out.opts(shared_axes=False, height=800, width=800, ylabel="D", xlabel="T", title="Trace Determinant Plane", show_grid=True)
     return out
 
 
@@ -158,32 +160,38 @@ def eigenvalues(a,b,c,d):
     
 
 
-# In[48]:
+# In[9]:
 
 
 td_plot = pn.bind(td_point, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
 
 
-# In[49]:
+# In[10]:
 
 
 eigen_indicator = pn.bind(eigenvalues, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
 
 
-# In[50]:
+# In[11]:
 
 
 test_app = pn.Column(pn.pane.Markdown("# Phase portraits for Linear ODE systems", align="center"),
-    pn.Row(pn.Column(pn.pane.Markdown("## Set values for constant matrix A of form"),pn.pane.LaTeX(r"$\frac{dY}{dt}=AY\:\:\:\:\:\:\:\:A=\begin{bmatrix}a & b\\c&d\end{bmatrix}$", renderer="katex"),a_widget, b_widget, c_widget, d_widget), pn.Column(pn.pane.Markdown("## Calculated eigenvalues:"),eigen_indicator, align="center"), align="center"),
-    pn.Row(bound_plot, td_plot, align="center"))
+    pn.Row(pn.Column(pn.pane.Markdown("## Set values for constant matrix A of form"),pn.pane.LaTeX(r"$\frac{dY}{dt}=AY\:\:\:\:\:\:\:\:A=\begin{bmatrix}a & b\\c&d\end{bmatrix}$", renderer="katex"),a_widget, b_widget, c_widget, d_widget, align="center"), pn.Column(pn.pane.Markdown("## Calculated eigenvalues:"),eigen_indicator, align="center"), align="center"),
+    pn.Row(bound_plot, td_plot, align="center"), align="center")
 # ,
 #     pn.Row(pn.pane.Markdown("## Set Initial Value parameters: ", align="center")),
 #     pn.Row(x_widget, y_widget, t_widget, align="center"),
 #     bound_solns)
 
 
-# In[51]:
+# In[12]:
 
 
 test_app.servable()
+
+
+# In[ ]:
+
+
+
 
