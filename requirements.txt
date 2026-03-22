@@ -1,6 +1,5 @@
 holoviews
 panel
-pathlib
 scipy
 numpy
 pandas

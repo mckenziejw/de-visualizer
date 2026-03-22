@@ -1,0 +1,13 @@
+name: de-visualizer
+services:
+  - name: de-visualizer
+    dockerfile_path: Dockerfile
+    github:
+      repo: mckenziejw/de-visualizer
+      branch: main
+      deploy_on_push: true
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-s
+    routes:
+      - path: /
