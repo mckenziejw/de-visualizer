@@ -7,6 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
-EXPOSE 8080
+EXPOSE 80
 
-CMD ["panel", "serve", "app.py", "--address", "0.0.0.0", "--port", "8080", "--allow-websocket-origin", "*", "--num-procs", "1"]
+CMD ["panel", "serve", "app.py", "--address", "0.0.0.0", "--port", "80", "--allow-websocket-origin", "*", "--num-procs", "1"]

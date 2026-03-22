@@ -6,7 +6,7 @@ services:
       repo: mckenziejw/de-visualizer
       branch: main
       deploy_on_push: true
-    http_port: 8080
+    http_port: 80
     instance_count: 1
     instance_size_slug: basic-s
     routes:
