@@ -37,20 +37,6 @@ def hook(plot, element):
     plot.state.add_tools(crosshair)
 
 
-# --- Presets ---
-PRESETS = {
-    "(custom)": None,
-    "Saddle": (2, 1, 1, -1),
-    "Stable Node": (-2, 1, 0, -1),
-    "Unstable Node": (2, 1, 0, 1),
-    "Center": (0, 1, -1, 0),
-    "Stable Spiral": (-1, 2, -2, -1),
-    "Unstable Spiral": (1, 2, -2, 1),
-    "Star Node (stable)": (-3, 0, 0, -3),
-    "Star Node (unstable)": (3, 0, 0, 3),
-}
-
-
 # --- Classification ---
 def classify_equilibrium(a, b, c, d):
     T = a + d
@@ -187,45 +173,9 @@ _td_parabola = _td_T**2 / 4
 _td_D_max = 30  # upper bound for filled regions
 _td_D_min = -12  # lower bound
 
-def _build_td_regions():
-    """Pre-build the static colored region polygons for the T-D plane."""
-    regions = []
-
-    # Saddle: entire strip where D < 0
-    saddle = hv.Polygons([{
-        'x': [-10, 10, 10, -10],
-        'y': [0, 0, _td_D_min, _td_D_min],
-    }]).opts(color='#f4c542', alpha=0.25, line_width=0)
-
-    # Stable Node: T < 0, 0 < D < T^2/4
-    t_left = _td_T[_td_T <= 0]
-    par_left = t_left**2 / 4
-    stable_node = hv.Polygons([{
-        'x': list(t_left) + list(t_left[::-1]),
-        'y': list(par_left) + [0]*len(t_left),
-    }]).opts(color='#2196F3', alpha=0.20, line_width=0)
-
-    # Unstable Node: T > 0, 0 < D < T^2/4
-    t_right = _td_T[_td_T >= 0]
-    par_right = t_right**2 / 4
-    unstable_node = hv.Polygons([{
-        'x': list(t_right) + list(t_right[::-1]),
-        'y': list(par_right) + [0]*len(t_right),
-    }]).opts(color='#f44336', alpha=0.20, line_width=0)
-
-    # Stable Spiral: T < 0, D > T^2/4
-    stable_spiral = hv.Polygons([{
-        'x': list(t_left) + list(t_left[::-1]),
-        'y': [_td_D_max]*len(t_left) + list(par_left[::-1]),
-    }]).opts(color='#4CAF50', alpha=0.20, line_width=0)
-
-    # Unstable Spiral: T > 0, D > T^2/4
-    unstable_spiral = hv.Polygons([{
-        'x': list(t_right) + list(t_right[::-1]),
-        'y': [_td_D_max]*len(t_right) + list(par_right[::-1]),
-    }]).opts(color='#FF9800', alpha=0.20, line_width=0)
-
-    # Center line: T=0, D>0 — draw as a vertical line
+def _build_td_base():
+    """Pre-build the static reference lines for the T-D plane."""
+    # Center line: T=0, D>0
     center_line = hv.Curve([(0, 0), (0, _td_D_max)]).opts(
         color='purple', line_dash='dashed', line_width=2)
 
@@ -237,20 +187,9 @@ def _build_td_regions():
     parabola = hv.Curve(list(zip(_td_T, _td_parabola))).opts(
         color='black', line_width=2)
 
-    # Labels
-    labels = hv.Overlay([
-        hv.Text(0, -6, "Saddle").opts(text_color='#b8960f', text_font_size="11pt", text_font_style='bold'),
-        hv.Text(-6.5, 8, "Stable\nNode").opts(text_color='#1565C0', text_font_size="10pt", text_font_style='bold'),
-        hv.Text(6.5, 8, "Unstable\nNode").opts(text_color='#c62828', text_font_size="10pt", text_font_style='bold'),
-        hv.Text(-5, 22, "Stable\nSpiral").opts(text_color='#2E7D32', text_font_size="10pt", text_font_style='bold'),
-        hv.Text(5, 22, "Unstable\nSpiral").opts(text_color='#E65100', text_font_size="10pt", text_font_style='bold'),
-        hv.Text(0.8, 27, "Centers").opts(text_color='purple', text_font_size="9pt", text_font_style='italic'),
-    ])
+    return d_zero_line * parabola * center_line
 
-    return (saddle * stable_node * unstable_node * stable_spiral * unstable_spiral
-            * d_zero_line * parabola * center_line * labels)
-
-_td_static = _build_td_regions()
+_td_static = _build_td_base()
 
 def trace(a, b, c, d):
     return a + d
@@ -305,18 +244,6 @@ x_widget = pn.widgets.EditableFloatSlider(name="x0", value=1, start=range_min, e
 y_widget = pn.widgets.EditableFloatSlider(name="y0", value=1, start=range_min, end=range_max, step=0.1)
 t_widget = pn.widgets.EditableFloatSlider(name="time range", value=6, start=0, end=20, step=0.1)
 
-# --- Preset dropdown ---
-preset_widget = pn.widgets.Select(name="Preset Examples", options=list(PRESETS.keys()), value="(custom)")
-
-def on_preset_change(event):
-    vals = PRESETS.get(event.new)
-    if vals is None:
-        return
-    a_widget.value, b_widget.value, c_widget.value, d_widget.value = vals
-
-preset_widget.param.watch(on_preset_change, 'value')
-
-
 # --- Bindings ---
 bound_plot = pn.bind(create_phase_plot, a=a_widget, b=b_widget, c=c_widget, d=d_widget,
                      x=x_widget, y=y_widget, t=t_widget)
@@ -335,7 +262,6 @@ test_app = pn.Column(
         pn.Column(
             pn.pane.Markdown("## Constant Matrix A"),
             pn.pane.LaTeX(r"$\frac{dY}{dt}=AY$", renderer="katex"),
-            preset_widget,
             a_widget, b_widget, c_widget, d_widget,
             sizing_mode='stretch_width',
         ),
