@@ -38,39 +38,6 @@ def hook(plot, element):
 
 
 # --- Classification ---
-def classify_equilibrium(a, b, c, d):
-    T = a + d
-    D = a*d - b*c
-    disc = T**2 - 4*D
-    if D < 0:
-        return "Saddle Point"
-    if D == 0:
-        return "Non-isolated / Degenerate"
-    # D > 0
-    if disc > 0:
-        if T < 0:
-            return "Stable Node"
-        elif T > 0:
-            return "Unstable Node"
-        else:
-            return "Stable Node / Center (borderline)"
-    elif disc < 0:
-        if T < 0:
-            return "Stable Spiral"
-        elif T > 0:
-            return "Unstable Spiral"
-        else:
-            return "Center"
-    else:
-        # disc == 0
-        if T < 0:
-            return "Stable Star/Degenerate Node"
-        elif T > 0:
-            return "Unstable Star/Degenerate Node"
-        else:
-            return "Degenerate"
-
-
 def d_system(t, state, a, b, c, d):
     x, y = state
     dx = a*x + b*y
@@ -168,10 +135,10 @@ def plot_ivp_solns(a, b, c, d, t, x, y):
 
 
 # --- T-D Plane with colored regions ---
-_td_T = np.linspace(-10, 10, 200)
+_td_T = np.linspace(-16, 16, 300)
 _td_parabola = _td_T**2 / 4
-_td_D_max = 30  # upper bound for filled regions
-_td_D_min = -12  # lower bound
+_td_D_max = 70
+_td_D_min = -20
 
 def _build_td_base():
     """Pre-build the static reference lines for the T-D plane."""
@@ -180,7 +147,7 @@ def _build_td_base():
         color='purple', line_dash='dashed', line_width=2)
 
     # D=0 horizontal line
-    d_zero_line = hv.Curve([(-10, 0), (10, 0)]).opts(
+    d_zero_line = hv.Curve([(-16, 0), (16, 0)]).opts(
         color='gray', line_dash='dotted', line_width=1)
 
     # Parabola D = T^2/4
@@ -205,7 +172,7 @@ def td_point(a, b, c, d):
 
     out = _td_static * point
     out.opts(shared_axes=False, ylabel="D", xlabel="T", title="Trace-Determinant Plane",
-             xlim=(-10, 10), ylim=(_td_D_min, _td_D_max), **resp_opts)
+             xlim=(-16, 16), ylim=(_td_D_min, _td_D_max), **resp_opts)
     return out
 
 
@@ -228,13 +195,6 @@ def matrix_display(a, b, c, d):
         renderer="katex", styles={"font-size": "18px"})
 
 
-def classification_display(a, b, c, d):
-    label = classify_equilibrium(a, b, c, d)
-    return pn.pane.Markdown(
-        f"### Equilibrium: **{label}**",
-        styles={"color": "#333", "text-align": "center"})
-
-
 # --- Widgets ---
 a_widget = pn.widgets.EditableFloatSlider(name="a", value=1, start=range_min, end=range_max, step=0.1)
 b_widget = pn.widgets.EditableFloatSlider(name="b", value=1, start=range_min, end=range_max, step=0.1)
@@ -252,7 +212,6 @@ bound_solns = pn.bind(plot_ivp_solns, a=a_widget, b=b_widget, c=c_widget, d=d_wi
 td_plot = pn.bind(td_point, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
 eigen_indicator = pn.bind(eigenvalues, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
 matrix_pane = pn.bind(matrix_display, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
-classification_pane = pn.bind(classification_display, a=a_widget, b=b_widget, c=c_widget, d=d_widget)
 
 
 # --- Layout ---
@@ -270,8 +229,6 @@ test_app = pn.Column(
             pn.pane.Markdown("---"),
             pn.pane.Markdown("### Eigenvalues"),
             eigen_indicator,
-            pn.pane.Markdown("---"),
-            classification_pane,
             align="center",
             sizing_mode='stretch_width',
         ),
