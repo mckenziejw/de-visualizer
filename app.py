@@ -2,11 +2,8 @@
 # coding: utf-8
 
 import panel as pn
-import hvplot.pandas
-import pandas as pd
 import numpy as np
-from holoviews import opts, streams
-import pathlib
+from holoviews import opts
 import holoviews as hv
 from scipy.linalg import eigvals, eig
 from scipy.integrate import solve_ivp
@@ -21,7 +18,7 @@ range_max = 10.0
 # Compute grid over a larger area so zooming out still shows vectors
 grid_min = -30.0
 grid_max = 30.0
-step_size = 0.5
+step_size = 1.0
 xs, ys = np.arange(grid_min, grid_max, step_size), np.arange(grid_min, grid_max, step_size)
 X, Y = np.meshgrid(xs, ys)
 def dx(a, b):

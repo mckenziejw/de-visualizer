@@ -2,5 +2,3 @@ holoviews
 panel
 scipy
 numpy
-pandas
-hvplot
