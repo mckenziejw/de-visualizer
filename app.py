@@ -52,7 +52,7 @@ def create_phase_plot(a, b, c, d, x, y, t):
     angle = (np.pi/2.) - np.arctan2(U/mag_safe, V/mag_safe)
     opts.defaults(opts.Scatter(color="red", size=10))
 
-    resp_opts = dict(responsive=True, min_height=500)
+    resp_opts = dict(frame_width=500, frame_height=500)
 
     vectorfield = hv.VectorField((xs, ys, angle, mag)).opts(shared_axes=False, **resp_opts)
     # find any eigenvectors
@@ -165,7 +165,7 @@ def determinant(a, b, c, d):
     return a*d - b*c
 
 def td_point(a, b, c, d):
-    resp_opts = dict(responsive=True, min_height=500)
+    resp_opts = dict(frame_width=500, frame_height=500)
     point = hv.Scatter([(trace(a, b, c, d), determinant(a, b, c, d))]).opts(
         shared_axes=False, color="black", size=12, marker="circle", line_color="white",
         line_width=2, **resp_opts)
@@ -234,7 +234,7 @@ test_app = pn.Column(
         ),
         sizing_mode='stretch_width',
     ),
-    pn.Row(bound_plot, td_plot, sizing_mode='stretch_width', min_height=500),
+    pn.Row(bound_plot, td_plot, align="center", sizing_mode='stretch_width'),
     pn.pane.Markdown("## Initial Value Problem", align="center"),
     pn.Row(x_widget, y_widget, t_widget, align="center", sizing_mode='stretch_width'),
     bound_solns,
