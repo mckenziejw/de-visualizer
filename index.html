@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase Portraits for Linear ODE Systems</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Roboto', 'Segoe UI', sans-serif;
+    background: #fafafa;
+    color: #333;
+    padding: 20px;
+  }
+  h1 { text-align: center; font-size: 1.8em; margin-bottom: 16px; font-weight: 400; }
+  h2 { font-size: 1.3em; font-weight: 400; text-align: center; margin: 16px 0 8px; }
+  .top-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .controls-panel {
+    background: #fff; border-radius: 8px; padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12); min-width: 280px;
+  }
+  .controls-panel h2 { text-align: left; margin: 0 0 4px; }
+  .katex-eq { margin: 4px 0 12px; }
+  .info-panel {
+    background: #fff; border-radius: 8px; padding: 16px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12); min-width: 220px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .info-panel .katex-display { margin: 8px 0; }
+  .info-panel hr { width: 100%; border: none; border-top: 1px solid #ddd; margin: 10px 0; }
+  .slider-row {
+    display: flex; align-items: center; gap: 8px; margin: 6px 0;
+  }
+  .slider-row label { width: 80px; font-size: 0.9em; text-align: right; }
+  .slider-row input[type=range] { flex: 1; min-width: 120px; }
+  .slider-row input[type=number] {
+    width: 65px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px;
+    font-size: 0.85em; text-align: center;
+  }
+  .plots-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  .plot-container { position: relative; }
+  .plot-container canvas { border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+  .plot-title {
+    text-align: center; font-size: 0.95em; font-weight: 500; margin-bottom: 4px; color: #555;
+  }
+  .ivp-sliders { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  .ivp-sliders .slider-row { min-width: 260px; }
+  .ivp-plots { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  .ivp-plots canvas { border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+  .crosshair { cursor: crosshair; }
+</style>
+</head>
+<body>
+
+<h1>Phase Portraits for Linear ODE Systems</h1>
+
+<div class="top-row">
+  <div class="controls-panel">
+    <h2>Constant Matrix A</h2>
+    <div class="katex-eq" id="system-eq"></div>
+    <div class="slider-row">
+      <label>a</label>
+      <input type="range" id="sl-a" min="-10" max="10" step="0.1" value="1">
+      <input type="number" id="num-a" min="-10" max="10" step="0.1" value="1">
+    </div>
+    <div class="slider-row">
+      <label>b</label>
+      <input type="range" id="sl-b" min="-10" max="10" step="0.1" value="1">
+      <input type="number" id="num-b" min="-10" max="10" step="0.1" value="1">
+    </div>
+    <div class="slider-row">
+      <label>c</label>
+      <input type="range" id="sl-c" min="-10" max="10" step="0.1" value="1">
+      <input type="number" id="num-c" min="-10" max="10" step="0.1" value="1">
+    </div>
+    <div class="slider-row">
+      <label>d</label>
+      <input type="range" id="sl-d" min="-10" max="10" step="0.1" value="1">
+      <input type="number" id="num-d" min="-10" max="10" step="0.1" value="1">
+    </div>
+  </div>
+  <div class="info-panel">
+    <div id="matrix-display"></div>
+    <hr>
+    <div style="font-size:1.1em;font-weight:500;margin-bottom:4px;">Eigenvalues</div>
+    <div id="eigen-display"></div>
+  </div>
+</div>
+
+<div class="plots-row">
+  <div class="plot-container">
+    <div class="plot-title">Phase Portrait dY/dt = AY</div>
+    <canvas id="phase-canvas" width="500" height="500" class="crosshair"></canvas>
+  </div>
+  <div class="plot-container">
+    <div class="plot-title">Trace-Determinant Plane</div>
+    <canvas id="td-canvas" width="500" height="500"></canvas>
+  </div>
+</div>
+
+<h2>Initial Value Problem</h2>
+<div class="ivp-sliders">
+  <div class="slider-row">
+    <label>x₀</label>
+    <input type="range" id="sl-x0" min="-10" max="10" step="0.1" value="1">
+    <input type="number" id="num-x0" min="-10" max="10" step="0.1" value="1">
+  </div>
+  <div class="slider-row">
+    <label>y₀</label>
+    <input type="range" id="sl-y0" min="-10" max="10" step="0.1" value="1">
+    <input type="number" id="num-y0" min="-10" max="10" step="0.1" value="1">
+  </div>
+  <div class="slider-row">
+    <label>time range</label>
+    <input type="range" id="sl-t" min="0" max="20" step="0.1" value="6">
+    <input type="number" id="num-t" min="0" max="20" step="0.1" value="6">
+  </div>
+</div>
+
+<div class="ivp-plots">
+  <div>
+    <div class="plot-title">x(t)</div>
+    <canvas id="ivp-x" width="340" height="260"></canvas>
+  </div>
+  <div>
+    <div class="plot-title">y(t)</div>
+    <canvas id="ivp-y" width="340" height="260"></canvas>
+  </div>
+  <div>
+    <div class="plot-title">x(t), y(t)</div>
+    <canvas id="ivp-both" width="340" height="260"></canvas>
+  </div>
+</div>
+
+<script>
+// --- Slider wiring ---
+const params = { a: 1, b: 1, c: 1, d: 1, x0: 1, y0: 1, t: 6 };
+const sliderKeys = [
+  ['a', 'sl-a', 'num-a'], ['b', 'sl-b', 'num-b'],
+  ['c', 'sl-c', 'num-c'], ['d', 'sl-d', 'num-d'],
+  ['x0', 'sl-x0', 'num-x0'], ['y0', 'sl-y0', 'num-y0'],
+  ['t', 'sl-t', 'num-t'],
+];
+for (const [key, slId, numId] of sliderKeys) {
+  const sl = document.getElementById(slId);
+  const num = document.getElementById(numId);
+  sl.addEventListener('input', () => { params[key] = parseFloat(sl.value); num.value = sl.value; update(); });
+  num.addEventListener('input', () => {
+    let v = parseFloat(num.value);
+    if (isNaN(v)) return;
+    v = Math.max(parseFloat(sl.min), Math.min(parseFloat(sl.max), v));
+    params[key] = v; sl.value = v; update();
+  });
+}
+
+// --- KaTeX rendering ---
+katex.render(String.raw`\frac{d\mathbf{Y}}{dt} = A\mathbf{Y}`, document.getElementById('system-eq'), { displayMode: true });
+
+function renderMatrix(a, b, c, d) {
+  katex.render(
+    `A = \\begin{bmatrix} ${a.toFixed(1)} & ${b.toFixed(1)} \\\\ ${c.toFixed(1)} & ${d.toFixed(1)} \\end{bmatrix}`,
+    document.getElementById('matrix-display'), { displayMode: true }
+  );
+}
+
+function renderEigenvalues(a, b, c, d) {
+  const { l1, l2 } = eigenvalues(a, b, c, d);
+  const fmt = (z) => {
+    if (Math.abs(z.im) < 1e-10) return z.re.toFixed(3);
+    const sign = z.im >= 0 ? '+' : '-';
+    return `${z.re.toFixed(3)} ${sign} ${Math.abs(z.im).toFixed(3)}i`;
+  };
+  katex.render(
+    `\\lambda_1 = ${fmt(l1)} \\\\[4pt] \\lambda_2 = ${fmt(l2)}`,
+    document.getElementById('eigen-display'), { displayMode: true }
+  );
+}
+
+// --- Math ---
+function eigenvalues(a, b, c, d) {
+  const T = a + d;
+  const D = a * d - b * c;
+  const disc = T * T - 4 * D;
+  if (disc >= 0) {
+    const sq = Math.sqrt(disc);
+    return {
+      l1: { re: (T + sq) / 2, im: 0 },
+      l2: { re: (T - sq) / 2, im: 0 },
+    };
+  } else {
+    const sq = Math.sqrt(-disc);
+    return {
+      l1: { re: T / 2, im: sq / 2 },
+      l2: { re: T / 2, im: -sq / 2 },
+    };
+  }
+}
+
+function eigenvectors(a, b, c, d) {
+  const { l1, l2 } = eigenvalues(a, b, c, d);
+  if (Math.abs(l1.im) > 1e-10) return null; // complex eigenvalues
+  const vecs = [];
+  for (const lam of [l1.re, l2.re]) {
+    // (A - λI)v = 0 => (a-λ)vx + b*vy = 0
+    const a_ = a - lam, b_ = b, c_ = c, d_ = d - lam;
+    if (Math.abs(b_) > 1e-12) {
+      vecs.push([1, -a_ / b_]);
+    } else if (Math.abs(d_) > 1e-12) {
+      vecs.push([-d_ / c_, 1]);
+    } else {
+      vecs.push([1, 0]);
+    }
+  }
+  return vecs;
+}
+
+function rk4Step(f, t, y, dt) {
+  const k1 = f(t, y);
+  const k2 = f(t + dt / 2, y.map((v, i) => v + dt / 2 * k1[i]));
+  const k3 = f(t + dt / 2, y.map((v, i) => v + dt / 2 * k2[i]));
+  const k4 = f(t + dt, y.map((v, i) => v + dt * k3[i]));
+  return y.map((v, i) => v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+}
+
+function solveODE(a, b, c, d, x0, y0, tMax) {
+  const dt = 0.02;
+  const f = (t, y) => [a * y[0] + b * y[1], c * y[0] + d * y[1]];
+  const ts = [], xs = [], ys = [];
+  let y = [x0, y0];
+  for (let t = 0; t < tMax; t += dt) {
+    ts.push(t);
+    xs.push(y[0]);
+    ys.push(y[1]);
+    if (Math.abs(y[0]) > 1e6 || Math.abs(y[1]) > 1e6) break;
+    y = rk4Step(f, t, y, dt);
+  }
+  return { ts, xs, ys };
+}
+
+// --- Canvas drawing helpers ---
+function worldToCanvas(wx, wy, xMin, xMax, yMin, yMax, cw, ch, pad) {
+  const px = pad + (wx - xMin) / (xMax - xMin) * (cw - 2 * pad);
+  const py = (ch - pad) - (wy - yMin) / (yMax - yMin) * (ch - 2 * pad);
+  return [px, py];
+}
+
+function drawAxes(ctx, xMin, xMax, yMin, yMax, cw, ch, pad, xlabel, ylabel) {
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 1;
+  // grid lines
+  ctx.beginPath();
+  const xStep = niceStep(xMax - xMin, 6);
+  const yStep = niceStep(yMax - yMin, 6);
+  for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+    const [px] = worldToCanvas(x, 0, xMin, xMax, yMin, yMax, cw, ch, pad);
+    ctx.moveTo(px, pad); ctx.lineTo(px, ch - pad);
+  }
+  for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+    const [, py] = worldToCanvas(0, y, xMin, xMax, yMin, yMax, cw, ch, pad);
+    ctx.moveTo(pad, py); ctx.lineTo(cw - pad, py);
+  }
+  ctx.stroke();
+  // axis lines through origin
+  ctx.strokeStyle = '#999'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  const [ox, oy] = worldToCanvas(0, 0, xMin, xMax, yMin, yMax, cw, ch, pad);
+  if (ox >= pad && ox <= cw - pad) { ctx.moveTo(ox, pad); ctx.lineTo(ox, ch - pad); }
+  if (oy >= pad && oy <= ch - pad) { ctx.moveTo(pad, oy); ctx.lineTo(cw - pad, oy); }
+  ctx.stroke();
+  // tick labels
+  ctx.fillStyle = '#666'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+  for (let x = Math.ceil(xMin / xStep) * xStep; x <= xMax; x += xStep) {
+    if (Math.abs(x) < 1e-10) continue;
+    const [px] = worldToCanvas(x, 0, xMin, xMax, yMin, yMax, cw, ch, pad);
+    const ly = Math.min(Math.max(oy + 14, pad + 14), ch - pad + 14);
+    ctx.fillText(formatTick(x), px, ly);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let y = Math.ceil(yMin / yStep) * yStep; y <= yMax; y += yStep) {
+    if (Math.abs(y) < 1e-10) continue;
+    const [, py] = worldToCanvas(0, y, xMin, xMax, yMin, yMax, cw, ch, pad);
+    const lx = Math.max(Math.min(ox - 6, cw - pad - 6), pad - 2);
+    ctx.fillText(formatTick(y), lx, py);
+  }
+  // axis labels
+  ctx.fillStyle = '#444'; ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(xlabel, cw / 2, ch - pad + 20);
+  ctx.save(); ctx.translate(pad - 30, ch / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textBaseline = 'middle'; ctx.fillText(ylabel, 0, 0); ctx.restore();
+}
+
+function niceStep(range, targetTicks) {
+  const rough = range / targetTicks;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  let step;
+  if (norm < 1.5) step = 1;
+  else if (norm < 3.5) step = 2;
+  else if (norm < 7.5) step = 5;
+  else step = 10;
+  return step * mag;
+}
+
+function formatTick(v) {
+  return Math.abs(v) >= 1 ? Math.round(v).toString() : v.toFixed(1);
+}
+
+// --- Phase Portrait ---
+const phaseCanvas = document.getElementById('phase-canvas');
+const phaseCtx = phaseCanvas.getContext('2d');
+const PHASE_PAD = 45;
+const VIEW_MIN = -10, VIEW_MAX = 10;
+const GRID_MIN = -30, GRID_MAX = 30, GRID_STEP = 1.0;
+
+function drawPhasePortrait() {
+  const { a, b, c, d, x0, y0, t } = params;
+  const cw = phaseCanvas.width, ch = phaseCanvas.height;
+  const ctx = phaseCtx;
+  ctx.clearRect(0, 0, cw, ch);
+  drawAxes(ctx, VIEW_MIN, VIEW_MAX, VIEW_MIN, VIEW_MAX, cw, ch, PHASE_PAD, 'x', 'y');
+
+  const w2c = (wx, wy) => worldToCanvas(wx, wy, VIEW_MIN, VIEW_MAX, VIEW_MIN, VIEW_MAX, cw, ch, PHASE_PAD);
+
+  // Clip to plot area
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(PHASE_PAD, PHASE_PAD, cw - 2 * PHASE_PAD, ch - 2 * PHASE_PAD);
+  ctx.clip();
+
+  // Vector field
+  ctx.strokeStyle = 'rgba(100,100,100,0.5)';
+  ctx.lineWidth = 1;
+  for (let gx = GRID_MIN; gx < GRID_MAX; gx += GRID_STEP) {
+    for (let gy = GRID_MIN; gy < GRID_MAX; gy += GRID_STEP) {
+      const u = a * gx + b * gy;
+      const v = c * gx + d * gy;
+      const mag = Math.sqrt(u * u + v * v);
+      if (mag < 1e-10) continue;
+      const scale = 0.4; // arrow length in world units
+      const nx = u / mag * scale;
+      const ny = v / mag * scale;
+      const [px, py] = w2c(gx, gy);
+      const [ex, ey] = w2c(gx + nx, gy + ny);
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ex, ey); ctx.stroke();
+      // arrowhead
+      const angle = Math.atan2(py - ey, px - ex);
+      const hs = 3;
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex + hs * Math.cos(angle + 0.4), ey + hs * Math.sin(angle + 0.4));
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex + hs * Math.cos(angle - 0.4), ey + hs * Math.sin(angle - 0.4));
+      ctx.stroke();
+    }
+  }
+
+  // Eigenvector lines
+  const vecs = eigenvectors(a, b, c, d);
+  if (vecs) {
+    ctx.strokeStyle = 'blue'; ctx.lineWidth = 1.5;
+    for (const [vx, vy] of vecs) {
+      const len = Math.sqrt(vx * vx + vy * vy);
+      if (len < 1e-12) continue;
+      const ext = 40; // extend well beyond view
+      const [x1, y1] = w2c(-vx / len * ext, -vy / len * ext);
+      const [x2, y2] = w2c(vx / len * ext, vy / len * ext);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+
+  // Trajectory
+  if (t > 0) {
+    const sol = solveODE(a, b, c, d, x0, y0, t);
+    if (sol.ts.length > 1) {
+      ctx.strokeStyle = 'red'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      const [sx, sy] = w2c(sol.xs[0], sol.ys[0]);
+      ctx.moveTo(sx, sy);
+      for (let i = 1; i < sol.ts.length; i++) {
+        const [px, py] = w2c(sol.xs[i], sol.ys[i]);
+        ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      // endpoint
+      const last = sol.ts.length - 1;
+      const [epx, epy] = w2c(sol.xs[last], sol.ys[last]);
+      ctx.fillStyle = 'red';
+      ctx.beginPath(); ctx.arc(epx, epy, 4, 0, 2 * Math.PI); ctx.fill();
+    }
+  }
+
+  // Initial point
+  const [ipx, ipy] = w2c(x0, y0);
+  ctx.fillStyle = 'blue';
+  ctx.beginPath(); ctx.arc(ipx, ipy, 5, 0, 2 * Math.PI); ctx.fill();
+
+  ctx.restore();
+}
+
+// --- Trace-Determinant Plane ---
+const tdCanvas = document.getElementById('td-canvas');
+const tdCtx = tdCanvas.getContext('2d');
+const TD_PAD = 45;
+function drawTDPlane() {
+  const { a, b, c, d } = params;
+  const T = a + d;
+  const D = a * d - b * c;
+
+  // Autoscale with padding, ensuring the parabola and point are visible
+  const margin = 3;
+  let xMin = Math.min(-4, T - margin);
+  let xMax = Math.max(4, T + margin);
+  // Ensure symmetric-ish around 0 for context
+  const xAbs = Math.max(Math.abs(xMin), Math.abs(xMax));
+  xMin = -xAbs; xMax = xAbs;
+
+  const parabolaAtEdge = xMax * xMax / 4;
+  let yMin = Math.min(-3, D - margin);
+  let yMax = Math.max(parabolaAtEdge + margin, D + margin);
+
+  const cw = tdCanvas.width, ch = tdCanvas.height;
+  const ctx = tdCtx;
+  ctx.clearRect(0, 0, cw, ch);
+  drawAxes(ctx, xMin, xMax, yMin, yMax, cw, ch, TD_PAD, 'T', 'D');
+
+  const w2c = (wx, wy) => worldToCanvas(wx, wy, xMin, xMax, yMin, yMax, cw, ch, TD_PAD);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(TD_PAD, TD_PAD, cw - 2 * TD_PAD, ch - 2 * TD_PAD);
+  ctx.clip();
+
+  // D = 0 line
+  ctx.strokeStyle = 'gray'; ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  const [d0x1, d0y1] = w2c(xMin, 0);
+  const [d0x2, d0y2] = w2c(xMax, 0);
+  ctx.beginPath(); ctx.moveTo(d0x1, d0y1); ctx.lineTo(d0x2, d0y2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Parabola D = T^2/4
+  ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  let first = true;
+  for (let pt = xMin; pt <= xMax; pt += (xMax - xMin) / 300) {
+    const pD = pt * pt / 4;
+    const [px, py] = w2c(pt, pD);
+    if (first) { ctx.moveTo(px, py); first = false; }
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // T = 0 center line (dashed purple)
+  ctx.strokeStyle = 'purple'; ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  const [cl1x, cl1y] = w2c(0, Math.max(0, yMin));
+  const [cl2x, cl2y] = w2c(0, yMax);
+  ctx.beginPath(); ctx.moveTo(cl1x, cl1y); ctx.lineTo(cl2x, cl2y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current point
+  const [px, py] = w2c(T, D);
+  ctx.fillStyle = 'black'; ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(px, py, 6, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+
+  ctx.restore();
+}
+
+// --- IVP Solution Plots ---
+function drawLinePlot(canvasId, tsArr, datasArr, colors, xlabel, ylabel) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const cw = canvas.width, ch = canvas.height;
+  const pad = 40;
+  ctx.clearRect(0, 0, cw, ch);
+
+  if (!tsArr.length || tsArr.length < 2) {
+    ctx.fillStyle = '#999'; ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Set time range > 0', cw / 2, ch / 2);
+    return;
+  }
+
+  // Compute bounds
+  let yMin = Infinity, yMax = -Infinity;
+  for (const data of datasArr) {
+    for (const v of data) { if (v < yMin) yMin = v; if (v > yMax) yMax = v; }
+  }
+  if (yMin === yMax) { yMin -= 1; yMax += 1; }
+  const yMargin = (yMax - yMin) * 0.05;
+  yMin -= yMargin; yMax += yMargin;
+  const tMin = tsArr[0], tMax = tsArr[tsArr.length - 1];
+
+  drawAxes(ctx, tMin, tMax, yMin, yMax, cw, ch, pad, xlabel, ylabel);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(pad, pad, cw - 2 * pad, ch - 2 * pad);
+  ctx.clip();
+
+  const w2c = (wx, wy) => worldToCanvas(wx, wy, tMin, tMax, yMin, yMax, cw, ch, pad);
+
+  for (let di = 0; di < datasArr.length; di++) {
+    const data = datasArr[di];
+    ctx.strokeStyle = colors[di]; ctx.lineWidth = 2;
+    ctx.beginPath();
+    const [sx, sy] = w2c(tsArr[0], data[0]);
+    ctx.moveTo(sx, sy);
+    for (let i = 1; i < tsArr.length; i++) {
+      const [px, py] = w2c(tsArr[i], data[i]);
+      ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawIVPPlots() {
+  const { a, b, c, d, x0, y0, t } = params;
+  if (t <= 0) {
+    for (const id of ['ivp-x', 'ivp-y', 'ivp-both']) {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#999'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Set time range > 0', canvas.width / 2, canvas.height / 2);
+    }
+    return;
+  }
+  const sol = solveODE(a, b, c, d, x0, y0, t);
+  drawLinePlot('ivp-x', sol.ts, [sol.xs], ['blue'], 't', 'x');
+  drawLinePlot('ivp-y', sol.ts, [sol.ys], ['red'], 't', 'y');
+  drawLinePlot('ivp-both', sol.ts, [sol.xs, sol.ys], ['blue', 'red'], 't', 'x,y');
+}
+
+// --- Update all ---
+function update() {
+  renderMatrix(params.a, params.b, params.c, params.d);
+  renderEigenvalues(params.a, params.b, params.c, params.d);
+  drawPhasePortrait();
+  drawTDPlane();
+  drawIVPPlots();
+}
+
+update();
+</script>
+</body>
+</html>
