@@ -9,4 +9,4 @@ COPY app.py .
 
 EXPOSE 80
 
-CMD ["panel", "serve", "app.py", "--address", "0.0.0.0", "--port", "80", "--allow-websocket-origin", "*", "--num-procs", "1"]
+CMD ["panel", "serve", "app.py", "--address", "0.0.0.0", "--port", "80", "--allow-websocket-origin", "*", "--num-procs", "8"]
